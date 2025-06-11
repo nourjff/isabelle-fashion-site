@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scarfs | Isabelle Dresses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      html, body {
+        background-color: black;
+        scroll-behavior: smooth;
+      }
+      .product-card {
+        background-color: white;
+      }
+    </style>
+  </head>
+  <body class="text-zinc-800">
+
+    <!-- Header -->
+    <nav class="flex justify-between items-center px-10 py-5 border-b border-zinc-100 bg-black">
+      <div class="flex items-center gap-4">
+        <img src="SA logo - 2.png" alt="SA Icon Logo" class="h-14 w-auto" />
+        <img src="SA logo.png" alt="Isabelle Dresses Logo" class="h-12 md:h-16 w-auto" />
+      </div>
+      <div class="flex gap-8 text-[#D4AF37]">
+        <a href="index.html">Home</a>
+        <a href="dresses.html">Dresses</a>
+        <a href="scarfs.html" class="font-bold underline">Scarfs</a>
+        <a href="heels.html">Heels</a>
+      </div>
+    </nav>
+
+    <!-- Page Title -->
+    <section class="text-center py-10">
+      <h1 class="text-white text-4xl font-semibold tracking-wide">Our Scarfs</h1>
+    </section>
+
+    <!-- Product Grid -->
+    <div id="productGrid" class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-10 pb-20"></div>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-6 mt-10">
+      <div class="flex justify-center items-center gap-3">
+        <img src="weboxa.png" alt="Weboxa Logo" class="h-12 w-12" />
+        <a href="https://weboxa.com" target="_blank" class="text-sm hover:text-[#D4AF37] transition-colors">
+          Powered by Weboxa
+        </a>
+      </div>
+    </footer>
+
+    <!-- Product Data -->
+    <script>
+      const scarfs = [
+        {
+          name: "Designer Scarf",
+          price: 45,
+          available: true,
+          image: "https://images.pexels.com/photos/4324953/pexels-photo-4324953.jpeg"
+        },
+        {
+          name: "Silk Floral Scarf",
+          price: 60,
+          available: true,
+          image: "https://images.pexels.com/photos/1837893/pexels-photo-1837893.jpeg"
+        }
+      ];
+
+      const productGrid = document.getElementById("productGrid");
+
+      scarfs.forEach(product => {
+        const productCard = document.createElement("article");
+        productCard.className =
+          "product-card bg-white rounded-2xl shadow-md overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105";
+
+        productCard.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" class="object-cover w-full h-[350px]" />
+          <div class="p-5 space-y-4 text-center">
+            <h3 class="text-lg font-medium text-zinc-800">${product.name}</h3>
+            <p class="text-stone-500">
+              <span class="text-zinc-800 font-semibold">$${product.price}</span>
+              <span>/day</span>
+            </p>
+            <button class="px-6 py-2 rounded-full bg-stone-500 text-white hover:bg-[#D4AF37] transition-colors">
+              Rent Now
+            </button>
+          </div>
+        `;
+
+        productGrid.appendChild(productCard);
+      });
+    </script>
+  </body>
+</html>
