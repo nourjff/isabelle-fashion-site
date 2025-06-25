@@ -5,11 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Isabelle Dresses</title>
 
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Open Sans"', 'sans-serif'],
+          serif: ['"Playfair Display"', 'serif'],
+        }
+      }
+    }
+  }
+</script>
+
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Google Fonts: Nunito & Playfair Display -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
 
   <!-- AOS (Animation On Scroll) -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -27,8 +41,9 @@
       background-repeat: no-repeat;
       background-attachment: fixed;
       background-position: center;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 200;
+      font-family: 'Open Sans';
+
+      font-weight: 300;
     }
 
     html {
@@ -53,17 +68,35 @@
     .gold-icon {
       filter: brightness(0) saturate(100%) invert(71%) sepia(42%) saturate(900%) hue-rotate(4deg) brightness(95%) contrast(90%);
     }
+
+   
+  /* --- GLOBAL FONT RESET ----------------------------------- */
+  /* Make every element inherit Open Sans Light unless told otherwise */
+  body, h1, h2, h3, h4, h5, h6,
+  p, a, span, li, input, button, div, section, nav {
+    font-family: 'Open Sans', sans-serif !important;
+    font-weight: 300 !important;     /* thin by default             */
+  }
+
+  /* Keep Playfair Display for the decorative sub-headings you marked */
+  .sub-font {                        /* already defined above       */
+    font-family: 'Playfair Display', serif !important;
+    font-style: italic !important;
+    font-weight: 400 !important;     /* regular weight looks best   */
+  }
+
   </style>
 </head>
 <body class="text-white">
 
 <!-- Header -->
 <!-- 🟦 NAVIGATION SECTION -->
-<nav class="bg-black text-[#D4AF37] px-4 py-4 flex justify-between items-center relative">
+<nav class="flex justify-between items-center px-10 py-8 bg-black text-[#D4AF37] text-2xl font-semibold">
   <!-- Logo -->
-  <div class="flex items-center gap-3">
-    <img src="SA logo - 2.png" class="h-10 w-auto" />
-    <img src="SA logo.png" class="h-14 w-auto" />
+  <div class="flex items-center gap-6">
+    <img src="SA logo - 2.png" alt="SA Icon Logo" class="h-16 w-auto" />
+    <img src="SA logo.png" alt="Isabelle Dresses Logo" class="h-20 w-auto" />
+  </div>
   </div>
 
 <button id="menuToggle"
@@ -73,12 +106,14 @@
 
 
 <!-- DESKTOP Menu -->
-<div class="hidden sm:flex gap-8 text-[#D4AF37] text-lg font-medium">
-  <a href="index.html" class="hover:text-white">Home</a>
-  <a href="about.php" class="hover:text-white">About</a>
-  <a href="dresses.php" class="hover:text-white">Dresses</a>
-  <a href="heels.php" class="hover:text-white">Heels</a>
+<div class="hidden sm:flex gap-10 text-xl font-light">
+  <a href="index.php" class="text-white font-semibold">Home</a>
+  <a href="about.php" class="text-[#D4AF37] hover:text-white">About</a>
+  <a href="dresses.php" class="text-[#D4AF37] hover:text-white">Dresses</a>
+  <a href="heels.php" class="text-[#D4AF37] hover:text-white">Heels</a>
 </div>
+
+
 
 <!-- MOBILE Sidebar Menu -->
 <div id="menu"
@@ -97,9 +132,9 @@
 <section class="relative h-[600px] max-sm:h-[400px]">
   <img src="img1.jpg" alt="Luxury fashion items" class="object-cover w-full h-full block" />
   <div class="absolute top-[70%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white">
-<h2 class="mb-5 text-4xl sm:text-5xl max-sm:text-2xl font-bold tracking-wide">Elegance for Every Occasion</h2>
+<h2 class="mb-5 text-4xl sm:text-5xl max-sm:text-2xl font-light tracking-wide">Elegance for Every Occasion</h2>
 <a href="#products-anchor"
-   class="inline-block bg-[#D4AF37] text-black rounded-[30px] px-6 sm:px-10 py-3 sm:py-4 text-sm sm:text-lg font-semibold hover:bg-yellow-500 transition text-center max-w-[90vw]">
+   class="inline-block bg-[#D4AF37] text-black rounded-[30px] px-6 sm:px-10 py-3 sm:py-4 text-sm sm:text-lg font-bold hover:bg-yellow-500 transition text-center max-w-[90vw]">
   Browse Collection
 </a>
 
@@ -164,7 +199,7 @@
 </script>
 
 <!-- Contact Us Section -->
-<section class="relative bg-black text-white text-center py-8 px-4">
+<section class="relative bg-black text-white text-center py-9 px-4">
 <img src="icons/left.svg" alt="Decor"
   class="absolute top-6 left-2 w-20 h-20 sm:top-10 sm:left-10 sm:w-32 sm:h-32 md:w-48 md:h-48">
 
@@ -172,8 +207,11 @@
   class="absolute top-6 right-2 w-20 h-20 sm:top-10 sm:right-10 sm:w-32 sm:h-32 md:w-48 md:h-48">
 
 
-  <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-wide leading-tight sub-font">We Love To Communicate</h2>
-  <p class="text-2xl md:text-3xl text-gray-300">We Would Love To Help</p>
+  <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-wide leading-tight">We Love To Communicate</h2>
+ <p class="text-2xl md:text-3xl text-gray-300 font-light">
+  We Would Love To Help
+</p>
+
 </section>
 <section class="bg-black text-white py-16 px-4">
   <div class="max-w-screen-xl mx-auto">
@@ -184,42 +222,42 @@
    <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-10 items-center mt-10 text-base text-center sm:text-left">
 
 
-      <!-- Location -->
-      <div class="flex items-center gap-3">
-        <img src="icons/location.svg" alt="Location" class="h-6 w-6 gold-icon">
-        <div>
-          <p class="font-bold">Beirut Baabda</p>
-          <p class="text-sm text-gray-300">Thwetat Al Ghadir – Near Sunrise School</p>
-        </div>
-      </div>
+   <!-- Location -->
+<div class="flex items-center gap-3">
+  <img src="icons/location.svg" alt="Location" class="h-6 w-6 gold-icon">
+  <div>
+    <p class="text-lg font-semibold text-white">Beirut Baabda</p>
+    <p class="text-base text-gray-300">Thwetat Al Ghadir – Near Sunrise School</p>
+  </div>
+</div>
 
-      <!-- Phone -->
-      <div class="flex items-center gap-3">
-        <img src="icons/phone.svg" alt="Phone" class="h-6 w-6 gold-icon">
-        <p class="text-gray-300">+971 81 971 871</p>
-      </div>
+<!-- Phone -->
+<div class="flex items-center gap-3">
+  <img src="icons/phone.svg" alt="Phone" class="h-6 w-6 gold-icon">
+  <p class="text-base text-gray-300">+971 81 971 871</p>
+</div>
 
-      <!-- Email -->
-      <div class="flex items-center gap-3">
-        <img src="icons/email.svg" alt="Email" class="h-6 w-6 gold-icon">
-        <p class="text-gray-300">info@isballdresses.com</p>
-      </div>
+<!-- Email -->
+<div class="flex items-center gap-3">
+  <img src="icons/email.svg" alt="Email" class="h-6 w-6 gold-icon">
+  <p class="text-base text-gray-300">info@isballdresses.com</p>
+</div>
+
 <!-- Socials -->
 <div class="flex items-center gap-6">
   <!-- TikTok -->
   <a href="https://www.tiktok.com/@isabelle.dresses" target="_blank" class="flex items-center gap-2 hover:underline">
     <img src="icons/tiktok.svg" alt="TikTok" class="h-6 w-6 gold-icon">
-    <p class="text-gray-300">isabelle.dresses</p>
+    <p class="text-base text-gray-300">isabelle.dresses</p>
   </a>
 
   <!-- Instagram -->
   <a href="https://www.instagram.com/isabelledresses/" target="_blank" class="flex items-center gap-2 hover:underline">
     <img src="icons/instagram.svg" alt="Instagram" class="h-6 w-6 gold-icon">
-    <p class="text-gray-300">isabelledresses</p>
+    <p class="text-base text-gray-300">isabelledresses</p>
   </a>
 </div>
 
-    </div>
   </div>
 </section>
 
@@ -227,13 +265,21 @@
 
 
   <!-- WhatsApp Button -->
-  <a href="https://wa.me/81971871" target="_blank" class="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5">
+  <!-- <a href="https://wa.me/81971871" target="_blank" class="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5">
 
     <div class="bg-[#D4AF37] rounded-full p-4 shadow-lg hover:scale-110 transition">
       <img src="icons/whatsapp.svg" alt="WhatsApp" class="h-12 w-12">
     </div>
   </a>
-</section>
+</section> -->
+
+<a href="https://wa.me/81971871" target="_blank" class="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5">
+  <div class="bg-[#25D366] rounded-full p-4 shadow-lg hover:scale-110 transition">
+    <img src="icons/whatsapp-icon.png" alt="WhatsApp" class="h-12 w-12">
+    
+  </div>
+</a>
+
 
 <!-- Footer -->
 <!-- <footer class="bg-black text-white py-8 mt-16 border-t border-zinc-800">

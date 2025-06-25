@@ -37,21 +37,19 @@ $result = $conn->query($sql);
 <head>
   <meta charset="UTF-8">
   <title>Dresses | Isabelle Dresses</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Flatpickr Calendar -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/rangePlugin.js"></script>
-<style>
-  .flatpickr-day.rental-day {
-    background: #dc2626 !important;  /* red */
-    color: white !important;
-  }
-  .flatpickr-day.trial-day {
-    background: #facc15 !important; /* gold */
-    color: black !important;
-  }
-</style>
 
+  <!-- Google Fonts (Unify with index.php) -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+
+  <!-- Global Styling -->
   <style>
     body {
       background-image: url('images/background.png');
@@ -59,35 +57,67 @@ $result = $conn->query($sql);
       background-repeat: no-repeat;
       background-attachment: fixed;
       background-position: center;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 300;
     }
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-  body {
-    font-family: 'Work Sans', sans-serif;
-  }
+    .gold-icon {
+      filter: brightness(0) saturate(100%) invert(71%) sepia(42%) saturate(900%) hue-rotate(4deg) brightness(95%) contrast(90%);
+    }
 
-  .sub-font {
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-  }
-</style>
+    .flatpickr-day.rental-day {
+      background: #dc2626 !important;
+      color: white !important;
+    }
 
+    .flatpickr-day.trial-day {
+      background: #facc15 !important;
+      color: black !important;
+    }
   </style>
 </head>
+
 <body class="text-white">
 
-<nav class="flex justify-between items-center px-10 py-8 bg-black text-[#D4AF37]">
-  <div class="flex items-center gap-4">
-    <img src="SA logo - 2.png" alt="Logo" class="h-20 w-auto">
-    <img src="SA logo.png" alt="Isabelle" class="h-24 md:h-16 w-auto">
+<nav class="flex justify-between items-center px-10 py-8 bg-black text-[#D4AF37] text-2xl font-semibold">
+  <!-- Logo -->
+  <div class="flex items-center gap-6">
+    <img src="SA logo - 2.png" alt="SA Icon Logo" class="h-16 w-auto" />
+    <img src="SA logo.png" alt="Isabelle Dresses Logo" class="h-20 w-auto" />
   </div>
-  <div class="flex gap-10 text-xl font-medium">
-    <a href="index.html">Home</a>
-    <a href="dresses.php" class="underline">Dresses</a>
-    <a href="heels.php">Heels</a>
   </div>
+
+<button id="menuToggle"
+        class="sm:hidden text-3xl text-[#D4AF37] fixed top-4 right-4 z-[999] bg-black bg-opacity-80 p-2 rounded-full shadow-lg">
+  ☰
+</button>
+
+
+<!-- DESKTOP Menu -->
+<!-- DESKTOP Menu -->
+<div class="hidden sm:flex gap-10 text-xl font-light">
+  <a href="index.php" class="text-[#D4AF37] hover:text-white">Home</a>
+  <a href="about.php" class="text-[#D4AF37] hover:text-white">About</a>
+  <a href="dresses.php" class="text-white font-semibold">Dresses</a>
+  <a href="heels.php" class="text-[#D4AF37] hover:text-white">Heels</a>
+</div>
+
+
+
+<!-- MOBILE Sidebar Menu -->
+<div id="menu"
+     class="fixed top-0 right-[-100%] w-[70%] h-full bg-black text-[#D4AF37] p-6 z-50 transition-all duration-300 sm:hidden flex flex-col gap-6 shadow-lg">
+  <a href="index.html" class="hover:text-white text-lg">Home</a>
+  <a href="about.php" class="hover:text-white text-lg">About</a>
+  <a href="dresses.php" class="hover:text-white text-lg">Dresses</a>
+  <a href="heels.php" class="hover:text-white text-lg">Heels</a>
+</div>
+
+
 </nav>
+
+</nav>
+
 
 <section class="pt-6 pb-8 px-6">
   <div class="w-full flex flex-col lg:flex-row gap-8 items-start">
@@ -126,13 +156,28 @@ $result = $conn->query($sql);
   <!-- Color Filter -->
   <div class="space-y-2">
     <p class="text-white font-semibold mb-1">Filter by Color:</p>
-    <?php
-    $colorOptions = ['pink', 'black', 'white', 'gold'];
-    foreach ($colorOptions as $c) {
-      $isSelected = ($color === $c) ? 'bg-[#D4AF37] text-black' : 'text-white hover:bg-[#D4AF37] hover:text-black';
-      echo '<a href="dresses.php?filter=' . $filter . '&color=' . $c . '" class="block w-full text-left px-4 py-2 rounded text-base font-medium transition-all ' . $isSelected . '">' . ucfirst($c) . '</a>';
-    }
-    ?>
+<?php
+// Get distinct available colors from dresses
+$colorSql = "SELECT DISTINCT color FROM dresses WHERE color IS NOT NULL AND color != '' ORDER BY color";
+$colorResult = $conn->query($colorSql);
+
+// "Clear Filter" link
+$isClear = empty($color); // No color filter selected
+echo '<a href="dresses.php?filter=' . $filter . '" class="block w-full text-left px-4 py-2 rounded text-base font-medium transition-all ' . 
+     ($isClear ? 'bg-[#D4AF37] text-black' : 'text-white hover:bg-[#D4AF37] hover:text-black') . '">Clear Color Filter</a>';
+
+if ($colorResult && $colorResult->num_rows > 0) {
+  while ($row = $colorResult->fetch_assoc()) {
+    $c = $row['color'];
+    $isSelected = ($color === $c);
+    echo '<a href="dresses.php?filter=' . $filter . '&color=' . urlencode($c) . '" class="block w-full text-left px-4 py-2 rounded text-base font-medium transition-all ' . 
+         ($isSelected ? 'bg-[#D4AF37] text-black' : 'text-white hover:bg-[#D4AF37] hover:text-black') . '">' . ucfirst($c) . '</a>';
+  }
+} else {
+  echo '<p class="text-sm text-white italic">No colors found.</p>';
+}
+?>
+
   </div>
 </aside>
 
@@ -174,7 +219,10 @@ $scarfsDataJSON = htmlspecialchars(json_encode($scarfs), ENT_QUOTES, 'UTF-8');
           echo '<form action="submit_trial.php" method="POST" class="text-sm space-y-2">';
           echo '<input type="hidden" name="dress_id" value="' . $dressId . '">';
           echo '<input type="text" name="customer_name" placeholder="Your Name" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">';
-          echo '<input type="text" name="customer_mobile" placeholder="Mobile Number" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">';
+echo '<div class="flex items-center gap-2">';
+echo '<img src="icons/lebanon-flag.png" alt="🇱🇧" class="w-6 h-6">';
+echo '<input type="text" name="customer_mobile" placeholder="Mobile Number" pattern="^(03|71|76|78|79|81)[0-9]{6}$" title="Enter a valid Lebanese number (e.g. 03xxxxxx)" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">';
+echo '</div>';
           echo '<input type="text" name="trial_date" id="trial_date_' . $dressId . '" placeholder="Select Trial Date" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">';
           echo '<input type="time" name="trial_time" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">';
           echo '<button type="submit" class="w-full mt-2 bg-[#D4AF37] text-black py-2 rounded hover:opacity-90">Submit</button>';
@@ -217,6 +265,53 @@ echo '</div>';
   Scarfs are available with some dresses for an additional fee of $3.
 </div>
 
+<!-- Contact Section -->
+<section class="relative bg-black text-white text-center py-9 px-4">
+  <img src="icons/left.svg" alt="Decor" class="absolute top-6 left-2 w-20 h-20 sm:top-10 sm:left-10 sm:w-32 sm:h-32 md:w-48 md:h-48">
+  <img src="icons/right.svg" alt="Decor" class="absolute top-6 right-2 w-20 h-20 sm:top-10 sm:right-10 sm:w-32 sm:h-32 md:w-48 md:h-48">
+  <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-wide leading-tight">We Love To Communicate</h2>
+  <p class="text-2xl md:text-3xl text-gray-300 font-light">We Would Love To Help</p>
+</section>
+<section class="bg-black text-white py-16 px-4">
+  <div class="max-w-screen-xl mx-auto">
+    <div class="flex flex-wrap justify-center gap-16 items-center mt-10 text-base">
+      <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-10 items-center mt-10 text-base text-center sm:text-left">
+
+        <div class="flex items-center gap-3">
+          <img src="icons/location.svg" alt="Location" class="h-6 w-6 gold-icon">
+          <div>
+            <p class="text-lg font-semibold text-white">Beirut Baabda</p>
+            <p class="text-base text-gray-300">Thwetat Al Ghadir – Near Sunrise School</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <img src="icons/phone.svg" alt="Phone" class="h-6 w-6 gold-icon">
+          <p class="text-base text-gray-300">+971 81 971 871</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <img src="icons/email.svg" alt="Email" class="h-6 w-6 gold-icon">
+          <p class="text-base text-gray-300">info@isballdresses.com</p>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <a href="https://www.tiktok.com/@isabelle.dresses" target="_blank" class="flex items-center gap-2 hover:underline">
+            <img src="icons/tiktok.svg" alt="TikTok" class="h-6 w-6 gold-icon">
+            <p class="text-base text-gray-300">isabelle.dresses</p>
+          </a>
+
+          <a href="https://www.instagram.com/isabelledresses/" target="_blank" class="flex items-center gap-2 hover:underline">
+            <img src="icons/instagram.svg" alt="Instagram" class="h-6 w-6 gold-icon">
+            <p class="text-base text-gray-300">isabelledresses</p>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Trial Booking Modal -->
 <div id="trialModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
   <div class="bg-black border border-[#D4AF37] p-6 rounded-lg w-full max-w-md relative">
@@ -224,7 +319,15 @@ echo '</div>';
     <form id="trialForm" method="POST" action="submit_trial.php" class="space-y-3">
       <input type="hidden" name="dress_id" id="modal_dress_id">
       <input type="text" name="customer_name" placeholder="Your Name" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">
-      <input type="text" name="customer_mobile" placeholder="Mobile Number" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">
+<div class="relative">
+  <input type="text" name="customer_mobile" placeholder="Mobile Number"
+         pattern="^(03|71|76|78|79|81)[0-9]{6}$"
+         title="Enter a valid Lebanese number (03/71/76/78/79/81 followed by 6 digits)" 
+         required
+         class="w-full p-2 pr-10 rounded bg-black border border-gray-600 placeholder-white">
+  <img src="icons/lebanon-flag.png" alt="🇱🇧" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 object-contain">
+</div>
+
       <input type="text" name="trial_date" id="modal_trial_date" placeholder="Select Trial Date" required class="w-full p-2 rounded bg-black border border-gray-600 placeholder-white">
       <select name="trial_time" id="modal_trial_time" required class="w-full p-2 rounded bg-black border border-gray-600 text-white">
   <option value="">Select Time</option>
@@ -385,37 +488,59 @@ function closeNoScarfModal() {
 
 
 
+<a href="https://wa.me/81971871" target="_blank" class="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5">
+  <div class="bg-[#25D366] rounded-full p-4 shadow-lg hover:scale-110 transition">
+    <img src="icons/whatsapp-icon.png" alt="WhatsApp" class="h-12 w-12">
+    
+  </div>
+</a>
+
 
 
   <!-- WhatsApp Button -->
-  <a href="https://wa.me/81971871" target="_blank" class="fixed bottom-5 right-5 z-50">
+  <!-- <a href="https://wa.me/81971871" target="_blank" class="fixed bottom-5 right-5 z-50">
     <div class="bg-[#D4AF37] rounded-full p-4 shadow-lg hover:scale-110 transition">
       <img src="icons/whatsapp.svg" alt="WhatsApp" class="h-12 w-12">
     </div>
-  </a>
+  </a> -->
+
 <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-    const name = decodeURIComponent("<?= $_GET['name'] ?>");
-    const date = decodeURIComponent("<?= $_GET['date'] ?>");
-    const time = decodeURIComponent("<?= $_GET['time'] ?>");
+    const name = decodeURIComponent("<?= $_GET['name'] ?? '' ?>");
+    const date = decodeURIComponent("<?= $_GET['date'] ?? '' ?>");
+    const time = decodeURIComponent("<?= $_GET['time'] ?? '' ?>");
+
+    const formattedTime = new Date('1970-01-01T' + time).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
     const popup = document.createElement('div');
     popup.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]";
-    
+
     popup.innerHTML = `
       <div class="bg-[#D4AF37] text-black px-8 py-6 rounded-xl text-center shadow-2xl border-3 border-black animate-fadeInUp max-w-md w-full">
-        <h2 class="text-2xl font-extrabold mb-2"> Trial Booked Successfully!</h2>
+        <h2 class="text-2xl font-extrabold mb-2">Trial Booked Successfully!</h2>
         <p class="text-lg mb-1"><strong>Name:</strong> ${name}</p>
         <p class="text-lg mb-1"><strong>Date:</strong> ${date}</p>
-        <p class="text-lg mb-3"><strong>Time:</strong> ${new Date('1970-01-01T' + time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        <p class="text-lg mb-3"><strong>Time:</strong> ${formattedTime}</p>
         <button onclick="this.closest('.fixed').remove()" class="bg-black text-[#D4AF37] px-4 py-2 rounded hover:bg-gray-900 transition">OK</button>
       </div>
     `;
 
     document.body.appendChild(popup);
+
+    // ✅ Clean URL
+    const url = new URL(window.location);
+    url.searchParams.delete('success');
+    url.searchParams.delete('name');
+    url.searchParams.delete('date');
+    url.searchParams.delete('time');
+    window.history.replaceState({}, document.title, url);
   });
 </script>
+
 <style>
 @keyframes fadeInUp {
   0% { transform: translateY(40px); opacity: 0; }
@@ -427,13 +552,6 @@ function closeNoScarfModal() {
 </style>
 <?php endif; ?>
 
-
-<!-- <footer class="bg-black text-white py-6 mt-10">
-  <div class="flex justify-center items-center gap-3">
-    <img src="weboxa.png" alt="Weboxa Logo" class="h-10 w-10" />
-    <a href="https://weboxa.com" target="_blank" class="text-sm hover:text-[#D4AF37] transition-colors">Powered by Weboxa</a>
-  </div>
-</footer> -->
 
 </body>
 </html>

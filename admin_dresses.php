@@ -134,6 +134,24 @@ if (isset($_POST['remove_scarf_from_dress'])) {
   exit;
 }
 
+if (isset($_POST['add_rental'])) {
+  $stmt = $conn->prepare("INSERT INTO rentals (dress_id, rental_date, customer_name, customer_phone, down_payment, return_date) VALUES (?, ?, ?, ?, ?, ?)");
+  $stmt->bind_param("isssds", $_POST['dress_id'], $_POST['rental_date'], $_POST['customer_name'], $_POST['customer_phone'], $_POST['down_payment'], $_POST['return_date']);
+  $stmt->execute();
+  $stmt->close();
+  header("Location: admin_dresses.php");
+  exit;
+}
+
+if (isset($_POST['add_trial'])) {
+  $stmt = $conn->prepare("INSERT INTO trials (dress_id, trial_date, trial_time, user_name, phone, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+  $stmt->bind_param("issss", $_POST['dress_id'], $_POST['trial_date'], $_POST['trial_time'], $_POST['customer_name'], $_POST['customer_phone']);
+  $stmt->execute();
+  $stmt->close();
+  header("Location: admin_dresses.php");
+  exit;
+}
+
 
 }
 ?>
@@ -163,7 +181,18 @@ if (isset($_POST['remove_scarf_from_dress'])) {
   background: #facc15 !important;
   color: black !important;
 }
+.input-error {
+  border-color: red;
+}
+.error-msg {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: -8px;
+  margin-bottom: 8px;
+}
+
   </style>
+  
 </head>
 <body class="bg-black text-white">
 
@@ -181,11 +210,64 @@ if (isset($_POST['remove_scarf_from_dress'])) {
 
 <section class="max-w-6xl mx-auto mt-10 px-6">
   <h2 class="text-3xl font-extrabold text-[#D4AF37] mb-6">Manage Dresses</h2>
-<form method="GET" class="mb-6 relative">
-  <input type="text" id="searchInput" name="search" placeholder="Search by dress name..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" class="w-full md:w-1/3 p-2 rounded border border-[#D4AF37] text-black">
-  <ul id="suggestionsList" class="absolute bg-white text-black border border-[#D4AF37] rounded mt-1 w-full max-h-48 overflow-y-auto z-50 hidden"></ul>
-  <button type="submit" class="bg-[#D4AF37] text-black px-4 py-2 rounded hover:bg-yellow-500 font-semibold mt-2">Search</button>
+<?php
+$searchTerm = $_GET['search'] ?? '';
+$selectedColor = $_GET['color'] ?? '';
+?>
+
+<!-- ✅ Combined Filter Form -->
+<form method="GET" class="mb-6 flex flex-col md:flex-row md:items-center gap-4">
+  <!-- 🔍 Search Bar -->
+  <div class="relative w-full md:w-1/3">
+    <input type="text" name="search" id="searchInput" placeholder="Search by dress name..."
+           value="<?php echo htmlspecialchars($searchTerm); ?>"
+           class="w-full p-2 rounded border border-[#D4AF37] text-black">
+    <ul id="suggestionsList"
+        class="absolute bg-white text-black border border-[#D4AF37] rounded mt-1 w-full max-h-48 overflow-y-auto z-50 hidden"></ul>
+  </div>
+
+  <!-- 🎨 Color Dropdown -->
+  <div class="flex items-center gap-2">
+    <label for="color" class="font-semibold">Color:</label>
+    <select name="color" id="color" onchange="this.form.submit()" class="p-2 rounded border text-black">
+      <option value="">All Colors</option>
+      <?php
+      $colorQuery = $conn->query("SELECT DISTINCT color FROM dresses WHERE color IS NOT NULL AND color != '' ORDER BY color");
+      while ($row = $colorQuery->fetch_assoc()) {
+        $color = $row['color'];
+        $selected = ($selectedColor === $color) ? 'selected' : '';
+        echo "<option value=\"" . htmlspecialchars($color) . "\" $selected>" . ucfirst(htmlspecialchars($color)) . "</option>";
+      }
+      ?>
+    </select>
+  </div>
+
+  <!-- 🔘 Search Button -->
+  <button type="submit"
+          class="bg-[#D4AF37] text-black px-4 py-2 rounded hover:bg-yellow-500 font-semibold">
+    Search
+  </button>
+
+
+
+  </select>
+
+  <!-- Preserve search term -->
+  <?php if (!empty($searchTerm)): ?>
+    <input type="hidden" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>">
+  <?php endif; ?>
 </form>
+
+<?php if (!empty($selectedColor)): ?>
+  <form method="GET" class="mb-6">
+    <!-- Optional: preserve search when clearing only color -->
+    <?php if (!empty($searchTerm)): ?>
+      <input type="hidden" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>">
+    <?php endif; ?>
+    <button type="submit" class="text-sm text-white underline hover:text-[#D4AF37]">Clear Color Filter</button>
+  </form>
+<?php endif; ?>
+
 
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -196,15 +278,37 @@ if (isset($_POST['remove_scarf_from_dress'])) {
 
 <?php
 $searchTerm = $_GET['search'] ?? '';
+$selectedColor = $_GET['color'] ?? '';
+
+$conditions = [];
+$params = [];
+$types = '';
+
 if (!empty($searchTerm)) {
-  $stmt = $conn->prepare("SELECT * FROM dresses WHERE name LIKE ? ORDER BY id DESC");
-  $likeTerm = '%' . $searchTerm . '%';
-  $stmt->bind_param("s", $likeTerm);
-  $stmt->execute();
-  $dresses = $stmt->get_result();
-} else {
-  $dresses = $conn->query("SELECT * FROM dresses ORDER BY id DESC");
+  $conditions[] = "name LIKE ?";
+  $params[] = '%' . $searchTerm . '%';
+  $types .= 's';
 }
+
+if (!empty($selectedColor)) {
+  $conditions[] = "color = ?";
+  $params[] = $selectedColor;
+  $types .= 's';
+}
+
+$sql = "SELECT * FROM dresses";
+if (!empty($conditions)) {
+  $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+$sql .= " ORDER BY id DESC";
+
+$stmt = $conn->prepare($sql);
+if (!empty($params)) {
+  $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$dresses = $stmt->get_result();
+
 
 while ($dress = $dresses->fetch_assoc()) {
   $id = $dress['id'];
@@ -282,6 +386,16 @@ if (empty($scarfNames)) {
 <form method="button">
   <button type="button" onclick="showCalendar(' . $id . ')" class="w-full mt-2 bg-[#D4AF37] text-black font-semibold py-1 rounded hover:bg-yellow-500">
     Show Calendar
+  </button>
+</form>
+<form method="button">
+  <button type="button" onclick="openRentalModal(' . $id . ')" class="w-full mt-2 bg-green-600 text-white font-semibold py-1 rounded hover:bg-green-700">
+    Book Rental
+  </button>
+</form>
+<form method="button">
+  <button type="button" onclick="openTrialModal(' . $id . ')" class="w-full mt-2 bg-blue-600 text-white font-semibold py-1 rounded hover:bg-blue-700">
+    Book Trial
   </button>
 </form>
 
@@ -394,23 +508,32 @@ function showCalendar(dressId) {
       trials.forEach(item => {
         allDates[item.date] = 'trial-day';
       });
+      if (window.rentalPicker) {
+  window.rentalPicker.destroy();
+}
 
-      flatpickr("#calendar", {
-        inline: true,
-        defaultDate: Object.keys(allDates),
-        disable: [],
-        onDayCreate: (dObj, dStr, fp, dayElem) => {
-          const date = dayElem.dateObj.toISOString().split('T')[0];
-          if (allDates[date]) {
-            dayElem.classList.add(allDates[date]);
-          }
 
-          const trialInfo = trials.find(t => t.date === date);
-          if (trialInfo) {
-            dayElem.title = "Trial at " + trialInfo.time;
-          }
-        }
-      });
+window.rentalPicker = flatpickr("#rentalDate", {
+  minDate: "today",
+  disable: disableDates,
+  dateFormat: "Y-m-d",
+  onDayCreate: (dObj, dStr, fp, dayElem) => {
+    const iso = dayElem.dateObj.toISOString().split("T")[0];
+    if (disableDates.includes(iso)) dayElem.classList.add("rental-day");
+    if (trialDates.includes(iso)) {
+      dayElem.classList.add("trial-day");
+      dayElem.title = "Trial date";
+    }
+  },
+  onChange: function(selectedDates) {
+    if (selectedDates.length > 0) {
+      const returnDate = new Date(selectedDates[0]);
+      returnDate.setDate(returnDate.getDate() + 1);
+      document.getElementById("returnDate").value = returnDate.toISOString().split("T")[0];
+    }
+  }
+});
+
 
       document.getElementById("calendarModal").classList.remove("hidden");
       document.getElementById("calendarModal").classList.add("flex");
@@ -515,6 +638,234 @@ document.addEventListener('click', function (e) {
   }
 });
 </script>
+<!-- Rental Modal -->
+<div id="rentalModal" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 items-center justify-center">
+  <div class="bg-white text-black p-6 rounded-xl w-full max-w-lg relative">
+    <button onclick="closeRentalModal()" class="absolute top-2 right-4 text-black text-2xl font-bold">&times;</button>
+    <h2 class="text-2xl font-bold mb-4">Add Rental</h2>
+    <form method="POST" id="rentalForm">
+      <input type="hidden" name="add_rental" value="1">
+      <input type="hidden" name="dress_id" id="rentalDressId">
 
-</body>
-</html>
+      <label class="font-bold">Customer Name</label>
+      <input type="text" name="customer_name" required class="w-full mb-2 p-2 border rounded">
+
+      <label class="font-bold">Customer Phone</label>
+<input type="text" name="customer_phone" id="rentalPhone" required class="w-full mb-1 p-2 border rounded">
+<div id="rentalPhoneError" class="error-msg hidden">Invalid phone number.</div>
+
+
+      <label class="font-bold">Rental Date</label>
+      <input type="text" name="rental_date" id="rentalDate" required class="w-full mb-2 p-2 border rounded">
+
+      <label class="font-bold">Return Date (auto)</label>
+      <input type="text" name="return_date" id="returnDate" readonly class="w-full mb-2 p-2 border rounded">
+
+      <label class="font-bold">Down Payment</label>
+      <input type="number" step="0.01" name="down_payment" required class="w-full mb-4 p-2 border rounded">
+
+      <button type="submit" class="w-full bg-[#D4AF37] text-black font-semibold py-2 rounded hover:bg-yellow-600">Submit Rental</button>
+    </form>
+  </div>
+</div>
+<script>
+function openRentalModal(dressId) {
+  document.getElementById("rentalModal").classList.remove("hidden");
+  document.getElementById("rentalModal").classList.add("flex");
+  document.getElementById("rentalDressId").value = dressId;
+
+  fetch(`get_calendar_dates.php?dress_id=${dressId}`)
+    .then(res => res.json())
+    .then(data => {
+      const rentals = data.rentals;
+      const trials = data.trials;
+      const disableDates = [];
+
+      rentals.forEach(date => {
+        const d = new Date(date);
+        [-1, 0, 1].forEach(offset => {
+          const blocked = new Date(d);
+          blocked.setDate(d.getDate() + offset);
+          disableDates.push(blocked.toISOString().split("T")[0]);
+        });
+      });
+
+      const trialDates = trials.map(t => t.date);
+
+      // ✅ HERE is the correct place
+      if (window.rentalPicker) {
+        window.rentalPicker.destroy();
+      }
+
+      window.rentalPicker = flatpickr("#rentalDate", {
+        minDate: "today",
+        disable: disableDates,
+        dateFormat: "Y-m-d",
+        onDayCreate: (dObj, dStr, fp, dayElem) => {
+          const iso = dayElem.dateObj.toISOString().split("T")[0];
+          if (disableDates.includes(iso)) dayElem.classList.add("rental-day");
+          if (trialDates.includes(iso)) {
+            dayElem.classList.add("trial-day");
+            dayElem.title = "Trial date";
+          }
+        },
+        onChange: function(selectedDates) {
+          if (selectedDates.length > 0) {
+            const returnDate = new Date(selectedDates[0]);
+            returnDate.setDate(returnDate.getDate() + 1);
+            document.getElementById("returnDate").value = returnDate.toISOString().split("T")[0];
+          }
+        }
+      });
+    });
+}
+
+
+function closeRentalModal() {
+  document.getElementById("rentalModal").classList.add("hidden");
+  document.getElementById("rentalModal").classList.remove("flex");
+  document.getElementById("rentalForm").reset();
+  document.getElementById("returnDate").value = '';
+}
+</script>
+<!-- Trial Modal -->
+<div id="trialModal" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 items-center justify-center">
+  <div class="bg-white text-black p-6 rounded-xl w-full max-w-lg relative">
+    <button onclick="closeTrialModal()" class="absolute top-2 right-4 text-black text-2xl font-bold">&times;</button>
+    <h2 class="text-2xl font-bold mb-4">Book Trial</h2>
+    <form method="POST" id="trialForm">
+      <input type="hidden" name="add_trial" value="1">
+      <input type="hidden" name="dress_id" id="trialDressId">
+
+      <label class="font-bold">Customer Name</label>
+      <input type="text" name="customer_name" required class="w-full mb-2 p-2 border rounded">
+
+      <label class="font-bold">Customer Phone</label>
+<input type="text" name="customer_phone" id="trialPhone" required class="w-full mb-1 p-2 border rounded">
+<div id="trialPhoneError" class="error-msg hidden">Invalid phone number.</div>
+
+      <label class="font-bold">Trial Date</label>
+      <input type="text" name="trial_date" id="trialDate" required class="w-full mb-2 p-2 border rounded">
+
+      <label class="font-bold">Time Slot</label>
+      <select name="trial_time" id="trialTime" required class="w-full mb-4 p-2 border rounded">
+        <option value="">Select Time</option>
+      </select>
+
+      <button type="submit" class="w-full bg-[#D4AF37] text-black font-semibold py-2 rounded hover:bg-yellow-600">Submit Trial</button>
+    </form>
+  </div>
+</div>
+<script>
+function openTrialModal(dressId) {
+  document.getElementById("trialModal").classList.remove("hidden");
+  document.getElementById("trialModal").classList.add("flex");
+  document.getElementById("trialDressId").value = dressId;
+
+  fetch(`get_calendar_dates.php?dress_id=${dressId}`)
+    .then(res => res.json())
+    .then(data => {
+      const rentals = data.rentals;
+      const trials = data.trials;
+      const disableDates = [];
+
+      rentals.forEach(date => {
+        const d = new Date(date);
+        [-1, 0, 1].forEach(offset => {
+          const blocked = new Date(d);
+          blocked.setDate(d.getDate() + offset);
+          disableDates.push(blocked.toISOString().split("T")[0]);
+        });
+      });
+
+      const trialDates = trials.map(t => t.date);
+
+      if (window.trialPicker) {
+        window.trialPicker.destroy();
+      }
+
+      window.trialPicker = flatpickr("#trialDate", {
+        minDate: "today",
+        disable: disableDates,
+        dateFormat: "Y-m-d",
+        onChange: function(selectedDates) {
+          if (selectedDates.length > 0) {
+            const selected = selectedDates[0].toISOString().split("T")[0];
+            loadTrialTimes(dressId, selected, trials);
+          }
+        },
+        onDayCreate: (dObj, dStr, fp, dayElem) => {
+          const iso = dayElem.dateObj.toISOString().split("T")[0];
+          if (disableDates.includes(iso)) dayElem.classList.add("rental-day");
+          if (trialDates.includes(iso)) {
+            dayElem.classList.add("trial-day");
+            dayElem.title = "Trial booked";
+          }
+        }
+      });
+    });
+}
+
+function loadTrialTimes(dressId, selectedDate, allTrials) {
+  const taken = allTrials.filter(t => t.date === selectedDate && t.dress_id == dressId).map(t => t.time);
+  const allSlots = [];
+
+  for (let h = 10; h < 19; h++) {
+    allSlots.push(`${h.toString().padStart(2, '0')}:00`);
+    allSlots.push(`${h.toString().padStart(2, '0')}:30`);
+  }
+
+  const select = document.getElementById("trialTime");
+  select.innerHTML = '<option value="">Select Time</option>';
+
+  allSlots.forEach(t => {
+    if (!taken.includes(t)) {
+      const option = document.createElement("option");
+      option.value = t;
+      option.textContent = t;
+      select.appendChild(option);
+    }
+  });
+}
+
+function closeTrialModal() {
+  document.getElementById("trialModal").classList.add("hidden");
+  document.getElementById("trialModal").classList.remove("flex");
+  document.getElementById("trialForm").reset();
+  document.getElementById("trialTime").innerHTML = '<option value="">Select Time</option>';
+}
+</script>
+
+<script>
+function isValidLebanesePhone(phone) {
+  return /^(03|71|76|78|79|81)\d{6}$/.test(phone);
+}
+
+// Rental Form Validation
+document.getElementById("rentalForm").addEventListener("submit", function(e) {
+  const phoneInput = document.getElementById("rentalPhone");
+  const errorDiv = document.getElementById("rentalPhoneError");
+  if (!isValidLebanesePhone(phoneInput.value.trim())) {
+    e.preventDefault();
+    phoneInput.classList.add("input-error");
+    errorDiv.style.display = "block";
+  } else {
+    phoneInput.classList.remove("input-error");
+    errorDiv.style.display = "none";
+  }
+});
+
+// Trial Form Validation
+document.getElementById("trialForm").addEventListener("submit", function(e) {
+  const phoneInput = document.getElementById("trialPhone");
+  const errorDiv = document.getElementById("trialPhoneError");
+  if (!isValidLebanesePhone(phoneInput.value.trim())) {
+    e.preventDefault();
+    phoneInput.classList.add("input-error");
+    errorDiv.style.display = "block";
+  } else {
+    phoneInput.classList.remove("input-error");
+    errorDiv.style.display = "none";
+  }
+});
+</script>
